@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIM — Security Incident Mapping</title>
+<style>
+  :root {
+    --bg: #0e1520;
+    --panel: #161f2c;
+    --panel-raised: #1c2735;
+    --border: #2a3644;
+    --text: #e7ecf1;
+    --text-dim: #8b98a8;
+    --alert: #ff5a36;
+    --alert-dim: #4a2620;
+    --safe: #47b880;
+    --warn: #f2b84b;
+    --mono: 'Courier New', Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  header {
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 18px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .brand-mark {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: 2px;
+    color: var(--alert);
+  }
+
+  .brand-sub {
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+  }
+
+  .status-line {
+    margin-top: 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .pulse {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--safe);
+    margin-right: 6px;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  main {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 18px;
+  }
+
+  section {
+    margin-bottom: 28px;
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 18px;
+  }
+
+  label {
+    display: block;
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    margin-top: 16px;
+  }
+
+  label:first-of-type { margin-top: 0; }
+
+  select, input[type="text"], textarea {
+    width: 100%;
+    background: var(--panel-raised);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 11px 12px;
+    color: var(--text);
+    font-size: 15px;
+    font-family: inherit;
+  }
+
+  select:focus, input:focus, textarea:focus {
+    outline: 2px solid var(--alert);
+    outline-offset: 1px;
+    border-color: var(--alert);
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 70px;
+  }
+
+  .row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .checkbox-row input { width: auto; }
+  .checkbox-row label { margin: 0; font-size: 13px; }
+
+  button.submit {
+    width: 100%;
+    margin-top: 20px;
+    background: var(--alert);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+  }
+
+  button.submit:active { opacity: 0.85; }
+
+  .filter-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .filter-chip {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--text-dim);
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .filter-chip.active {
+    border-color: var(--alert);
+    color: var(--alert);
+    background: var(--alert-dim);
+  }
+
+  .log-entry {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--alert);
+    border-radius: 4px;
+    padding: 14px;
+    margin-bottom: 10px;
+    animation: slideIn 0.3s ease;
+  }
+
+  .log-entry.severity-low { border-left-color: var(--warn); }
+  .log-entry.severity-resolved { border-left-color: var(--safe); }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .log-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .log-type {
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  .log-time {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+
+  .log-meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 6px;
+  }
+
+  .log-desc {
+    font-size: 13px;
+    color: var(--text);
+    margin-top: 8px;
+  }
+
+  .log-tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    background: var(--panel-raised);
+    color: var(--text-dim);
+    margin-top: 8px;
+    margin-right: 6px;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-dim);
+    font-size: 13px;
+  }
+
+  footer {
+    text-align: center;
+    padding: 24px 18px 40px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="brand-mark">SIM</span>
+    <span class="brand-sub">Security Incident Mapping</span>
+  </div>
+  <div class="status-line">
+    <span><span class="pulse"></span>LIVE — CAMPUS REPORTING CHANNEL</span>
+    <span id="report-count">0 LOGGED</span>
+  </div>
+</header>
+
+<main>
+
+  <section>
+    <div class="section-label">File a Report</div>
+    <div class="card">
+      <label for="role">Your role</label>
+      <select id="role">
+        <option value="Student">Student</option>
+        <option value="Staff">Staff</option>
+        <option value="Landlord">Landlord</option>
+      </select>
+
+      <label for="type">Incident type</label>
+      <select id="type">
+        <option>Theft</option>
+        <option>Assault</option>
+        <option>Harassment</option>
+        <option>Stabbing</option>
+        <option>Murder</option>
+        <option>Suspicious activity</option>
+        <option>Other</option>
+      </select>
+
+      <div class="row-2">
+        <div>
+          <label for="location">Location</label>
+          <input type="text" id="location" placeholder="e.g. Hostel Block C">
+        </div>
+        <div>
+          <label for="severity">Severity</label>
+          <select id="severity">
+            <option value="high">High</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="desc">What happened</label>
+      <textarea id="desc" placeholder="Brief description of the incident..."></textarea>
+
+      <div class="checkbox-row">
+        <input type="checkbox" id="anon" checked>
+        <label for="anon">Report anonymously</label>
+      </div>
+
+      <button class="submit" onclick="submitReport()">Submit Report</button>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-label">Incident Log</div>
+    <div class="filter-row" id="filters">
+      <div class="filter-chip active" data-filter="all">ALL</div>
+      <div class="filter-chip" data-filter="Theft">THEFT</div>
+      <div class="filter-chip" data-filter="Assault">ASSAULT</div>
+      <div class="filter-chip" data-filter="Harassment">HARASSMENT</div>
+      <div class="filter-chip" data-filter="Suspicious activity">SUSPICIOUS</div>
+    </div>
+    <div id="log-container">
+      <div class="empty-state">No incidents logged yet. Reports you submit above will appear here.</div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  SEN202 · SIM PROTOTYPE · PROOF-OF-CONCEPT INTERFACE
+</footer>
+
+<script>
+  let reports = JSON.parse(localStorage.getItem('sim_reports') || '[]');
+  let currentFilter = 'all';
+
+  function save() {
+    localStorage.setItem('sim_reports', JSON.stringify(reports));
+  }
+
+  function timeAgo(ts) {
+    const d = new Date(ts);
+    return d.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+
+  function render() {
+    const container = document.getElementById('log-container');
+    const filtered = currentFilter === 'all' ? reports : reports.filter(r => r.type === currentFilter);
+
+    document.getElementById('report-count').textContent = reports.length + ' LOGGED';
+
+    if (filtered.length === 0) {
+      container.innerHTML = '<div class="empty-state">No incidents logged yet. Reports you submit above will appear here.</div>';
+      return;
+    }
+
+    container.innerHTML = filtered.slice().reverse().map(r => {
+      const sevClass = r.severity === 'low' ? 'severity-low' : '';
+      return `
+        <div class="log-entry ${sevClass}">
+          <div class="log-top">
+            <span class="log-type">${r.type}</span>
+            <span class="log-time">${timeAgo(r.ts)}</span>
+          </div>
+          <div class="log-meta">LOCATION: ${r.location || 'Not specified'} · SEVERITY: ${r.severity.toUpperCase()}</div>
+          <div class="log-desc">${r.desc || 'No description provided.'}</div>
+          <span class="log-tag">${r.anon ? 'ANONYMOUS' : r.role.toUpperCase()}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function submitReport() {
+    const type = document.getElementById('type').value;
+    const location = document.getElementById('location').value.trim();
+    const severity = document.getElementById('severity').value;
+    const desc = document.getElementById('desc').value.trim();
+    const role = document.getElementById('role').value;
+    const anon = document.getElementById('anon').checked;
+
+    reports.push({ type, location, severity, desc, role, anon, ts: Date.now() });
+    save();
+    render();
+
+    document.getElementById('location').value = '';
+    document.getElementById('desc').value = '';
+  }
+
+  document.getElementById('filters').addEventListener('click', (e) => {
+    if (!e.target.classList.contains('filter-chip')) return;
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    e.target.classList.add('active');
+    currentFilter = e.target.dataset.filter;
+    render();
+  });
+
+  render();
+</script>
+
+</body>
+</html>
